@@ -12,6 +12,12 @@ class DblpApi:
         self.author_url = 'http://dblp.org/search/author/api'
         self.pub_url = 'http://dblp.org/search/publ/api'
 
+    def get_pub_list_by_url(self, url):
+        req = self.session.get(url)
+        soup = BeautifulSoup(req.content, 'html.parser')
+        pub_list = [article.get_text() for article in soup.select('span[class="title"]')]
+        return pub_list
+
     def search_pub(self, pub_name):
         params = {
             'q': pub_name,
