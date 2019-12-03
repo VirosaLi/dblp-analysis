@@ -114,7 +114,7 @@ def stacked_degree_fraction_over_year(df, name_gender, year_start, year_end):
     width = 0.35
     p_female = plt.bar(ind, female, width, color='r')
     p_male = plt.bar(ind, male, width, bottom=female, color='b')
-    plt.plot(ind, female_expected)
+    plt.plot(ind, female_expected, label='Expected Ratio')
     plt.ylabel('Cumulative Degree Sum as Percentage of Total Degree Sum')
     plt.xlabel('Year')
     plt.xticks(ind, years)
@@ -159,11 +159,11 @@ def mixed_edges_over_year(df, name_gender, year_start, year_end):
         g = nx.from_pandas_edgelist(data_mixed_edge)
         result.append(nx.number_of_edges(g))
 
-    _, ax = plt.subplots()
+    _, ax = plt.subplots(figsize=(8, 5))
     plt.plot(years, result, 'k.', label='observed mixed edges')
     plt.plot(years, exp, color='b', label='E[mixed edges] observed female frac, assume equal degree and no homophily')
     plt.plot(years, exp_norm, color='g', label='E[mixed edges] observed degree, assume no homophily')
-    ax.legend(loc='upper right', shadow=True, fontsize='x-large')
+    ax.legend(loc='upper left', shadow=True, fontsize=8)
     plt.ylabel('Cumulative Number of Mixed Edges')
     plt.xlabel('Year')
     plt.show()
