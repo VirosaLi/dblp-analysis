@@ -40,7 +40,7 @@ def build_student_mentor_graph(edge_list, author_list, name_gender_map, bound):
 
 def bipartite_biased_preferential_attachment(n, n_0, p_0, m_0, r, rho, g):
     # generate starting graph
-    #g = nx.erdos_renyi_graph(n_0, p_0, directed=False)
+    # g = nx.erdos_renyi_graph(n_0, p_0, directed=False)
 
     while nx.number_of_nodes(g) < n:
 
@@ -65,3 +65,16 @@ def bipartite_biased_preferential_attachment(n, n_0, p_0, m_0, r, rho, g):
         g.add_edges_from([(new_node, chosen) for chosen in chosen_nodes])
     return g
 
+
+def estimate_pdf_from_ccdf(unique, pdf_empirical, sequence, k_min):
+    ccdf = 1 - np.cumsum(pdf_empirical)
+    ccdf_dict = dict(zip(unique, ccdf))
+    x = np.log(np.array(sequence) / k_min)
+    ccdf_prob = [ccdf_dict[i] for i in sequence]
+    y = np.log(ccdf_prob)
+    A = np.vstack([x, np.ones(len(x))]).T
+    m, _ = np.linalg.lstsq(A, y, rcond=None)[0]
+    alpha = 1 - m
+    x_line = np.arange(min(sequence), max(sequence))
+    pdf_estimated = (alpha - 1) * np.power(k_min, alpha - 1) * np.power(x_line, -alpha)
+    return pdf_estimated
