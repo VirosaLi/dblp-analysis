@@ -1,7 +1,78 @@
+from itertools import combinations
+from collections import Counter
+
 import numpy as np
 import pandas as pd
 import networkx as nx
 from networkx.algorithms import bipartite
+
+
+def generate_edge_list(df: pd.DataFrame) -> pd.DataFrame:
+    df['pairs'] = df['author'].map(lambda x: list(combinations(x, 2)))
+    edge_list = pd.DataFrame(
+        [(pair[0], pair[1], row.year) for row in df.itertuples() for pair in row.pairs],
+        columns=['source', 'target', 'year'])
+    return edge_list
+
+
+def generate_author_list(df: pd.DataFrame) -> pd.DataFrame:
+
+    # flatten the data
+    df_expand = pd.DataFrame(
+        [(author, row.year) for row in df.itertuples() for author in row.author], columns=['author', 'year'])
+
+    # get unique authors and publication count
+    unique_author, pub_count = np.unique(df_expand['author'].tolist(), return_counts=True)
+    author_count_map = dict(zip(unique_author, pub_count))
+
+    # build author df
+    top_author = sorted(author_count_map.items(), key=lambda x: x[1], reverse=True)
+    df_authors = pd.DataFrame(top_author, columns=['author', 'number_publication'])
+
+    # get earliest publication year for each author
+    author_early_year = df_expand.groupby(['author']).min()
+
+    # join two df on author
+    return df_authors.join(author_early_year, on='author')
+
+
+def find_mentor(df_author: pd.DataFrame, edge_list: pd.DataFrame, mentor_difference: int) -> pd.DataFrame:
+    author_year_map = dict(zip(df_author['author'].tolist(), df_author['year'].tolist()))
+    mentor_candidates = {}
+    for row in edge_list.itertuples():
+        author1 = row.source
+        author2 = row.target
+
+        young = author1 if author_year_map[author1] > author_year_map[author2] else author2
+        old = author2 if author_year_map[author1] > author_year_map[author2] else author1
+
+        if author_year_map[young] > author_year_map[old] + mentor_difference:
+            if author_year_map[young] + mentor_difference > int(row.year):
+                if young in mentor_candidates:
+                    mentor_candidates[young].append(old)
+                else:
+                    mentor_candidates[young] = []
+
+    author_mentor_map = {}
+    for author, mentor_list in mentor_candidates.items():
+        if len(mentor_list) > 0:
+            author_mentor_map[author] = Counter(mentor_list).most_common(1)[0][0]
+
+    df_mentor = pd.DataFrame(author_mentor_map.items(), columns=['author', 'mentor'])
+
+    return df_author.merge(df_mentor, on='author')
+
+
+def pre_processing(file_path: str, max_coauthor: int) -> pd.DataFrame:
+    df = pd.read_csv(file_path, sep=';', low_memory=False)
+    df = df[['id', 'author', 'title', 'year']]
+    df.dropna(inplace=True)
+    df['year'] = df['year'].astype('int64')
+    df['author'] = df['author'].str.split('|')
+    num_author_list = df['author'].map(lambda x: len(x))
+    df = df[(num_author_list > 1) & (num_author_list < max_coauthor)]
+    df.reset_index(drop=True, inplace=True)
+    return df
 
 
 def build_student_mentor_graph(edge_list, author_list, name_gender_map, bound):
