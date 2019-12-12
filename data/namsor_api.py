@@ -1,7 +1,5 @@
 import requests
 
-from genderize import Genderize
-
 
 class NamSorApi:
     def __init__(self):
@@ -18,9 +16,10 @@ class NamSorApi:
 
         data = req.json()
 
-        print(data)
+        return data
 
 
 if __name__ == '__main__':
     namesor = NamSorApi()
-    namesor.get_gender('Amelia Xu')
+    gender = namesor.get_gender('Amelia Xu')
+    print(gender)

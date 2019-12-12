@@ -6,7 +6,7 @@ import networkx as nx
 
 edge_list = pd.read_csv('dblp_article_duplicate_edge_list.csv')
 
-gender_list = pd.read_csv('gender_list.csv')
+gender_list = pd.read_csv('gender/gender_list.csv')
 
 gender_list_filtered = gender_list[(gender_list['probability'] > 0.8) & (gender_list['count'] > 1)]
 
