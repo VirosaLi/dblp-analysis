@@ -78,10 +78,11 @@ def female_degree_fraction_plot(g, upper_bound):
     p = padded_female_counts / counts_total
     q = padded_male_counts / counts_total
     _, ax = plt.subplots()
-    ax.plot(unique_total[:upper_bound], p[:upper_bound], 'r.')
-    ax.plot(unique_total[:upper_bound], q[:upper_bound], 'b.')
+    ax.plot(unique_total[:upper_bound], p[:upper_bound], 'r.', label='female')
+    ax.plot(unique_total[:upper_bound], q[:upper_bound], 'b.', label='male')
     plt.xscale('log')
-    plt.title('Percentage of Female...')
+    ax.legend(loc='center right', shadow=True, fontsize='x-large')
+    plt.title('Percentage of Females and Males in the Mentor  Population of Degree at least k.')
     plt.xlabel('Degree')
     plt.ylabel('Percentage')
     plt.show()
